@@ -3,16 +3,20 @@ import { View, StyleSheet } from "react-native";
 import { StreamFeed } from "@stream-io/feeds-react-native-sdk";
 import { useOwnFeedsContext } from "@/contexts/own-feeds-context";
 import { ActivityList } from "@/components/activity/ActivityList";
+import { ActivityComposer } from "@/components/activity/ActivityComposer";
 
 export default () => {
-  const { ownTimeline } = useOwnFeedsContext();
+  const { ownTimeline, ownFeed } = useOwnFeedsContext();
 
-  if (!ownTimeline) {
+  if (!ownTimeline || !ownFeed) {
     return null;
   }
 
   return (
     <View style={styles.container}>
+      <StreamFeed feed={ownFeed}>
+        <ActivityComposer />
+      </StreamFeed>
       <StreamFeed feed={ownTimeline}>
         <ActivityList />
       </StreamFeed>
