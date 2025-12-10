@@ -13,6 +13,7 @@ import {
   useCreateFeedsClient,
 } from "@stream-io/feeds-react-native-sdk";
 import { API_KEY, CURRENT_USER } from "@/user";
+import { OwnFeedsContextProvider } from "@/contexts/own-feeds-context";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -35,16 +36,20 @@ export default function RootLayout() {
 
   return (
     <StreamFeeds client={client}>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="comments-modal"
-            options={{ presentation: "modal", title: "Comments" }}
-          />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <OwnFeedsContextProvider>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="comments-modal"
+              options={{ presentation: "modal", title: "Comments" }}
+            />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </OwnFeedsContextProvider>
     </StreamFeeds>
   );
 }
