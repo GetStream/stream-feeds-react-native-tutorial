@@ -5,6 +5,7 @@ import { ThemedText } from "@/components/themed-text";
 import type { ActivityResponse } from "@stream-io/feeds-react-native-sdk";
 import { useClientConnectedUser } from "@stream-io/feeds-react-native-sdk";
 import { FollowButton } from "@/components/follows/follow-button";
+import { Reaction } from "@/components/activity/Reaction";
 
 type ActivityProps = {
   activity: ActivityResponse;
@@ -52,11 +53,18 @@ export const Activity = ({ activity }: ActivityProps) => {
           ) : null}
         </ThemedView>
       </ThemedView>
+      <ThemedView style={styles.bottomRow}>
+        <Reaction activity={activity} />
+      </ThemedView>
     </ThemedView>
   );
 };
 
 const styles = StyleSheet.create({
+  bottomRow: {
+    flexDirection: "row",
+    marginTop: 4,
+  },
   actionsRow: {
     flexDirection: "row",
     alignItems: "center",
