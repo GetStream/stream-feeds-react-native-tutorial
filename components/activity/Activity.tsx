@@ -1,17 +1,19 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
 import type { ActivityResponse } from "@stream-io/feeds-react-native-sdk";
 import { useClientConnectedUser } from "@stream-io/feeds-react-native-sdk";
 import { FollowButton } from "@/components/follows/follow-button";
 import { Reaction } from "@/components/activity/Reaction";
+import { useRouter } from "expo-router";
 
 type ActivityProps = {
   activity: ActivityResponse;
 };
 
 export const Activity = ({ activity }: ActivityProps) => {
+  const router = useRouter();
   const name = activity.user?.name || activity.user?.id || "Unknown";
   const initial = name.charAt(0).toUpperCase();
 
@@ -55,14 +57,45 @@ export const Activity = ({ activity }: ActivityProps) => {
       </ThemedView>
       <ThemedView style={styles.bottomRow}>
         <Reaction activity={activity} />
+        <Pressable
+          style={({ pressed }) => [
+            styles.commentButton,
+            pressed && styles.commentButtonPressed,
+          ]}
+          onPress={() => {
+            router.push({
+              pathname: "/comments-modal",
+              params: {
+                activityId: activity.id,
+              },
+            });
+          }}
+        >
+          <ThemedText style={styles.commentText}>💬</ThemedText>
+          <ThemedText>{activity.comment_count}</ThemedText>
+        </Pressable>
       </ThemedView>
     </ThemedView>
   );
 };
 
 const styles = StyleSheet.create({
+  commentButton: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+  commentText: {
+    fontSize: 20,
+  },
+  commentButtonPressed: {
+    opacity: 0.7,
+  },
   bottomRow: {
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
     marginTop: 4,
   },
   actionsRow: {
