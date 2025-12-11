@@ -3,6 +3,8 @@ import { StyleSheet } from "react-native";
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
 import type { ActivityResponse } from "@stream-io/feeds-react-native-sdk";
+import { useClientConnectedUser } from "@stream-io/feeds-react-native-sdk";
+import { FollowButton } from "@/components/follows/follow-button";
 
 type ActivityProps = {
   activity: ActivityResponse;
@@ -19,8 +21,15 @@ export const Activity = ({ activity }: ActivityProps) => {
 
   const createdAtLabel = createdAt.toLocaleString();
 
+  const connectedUser = useClientConnectedUser();
+
   return (
     <ThemedView style={styles.card}>
+      <ThemedView style={styles.actionsRow}>
+        {activity.current_feed?.feed !== `user:${connectedUser?.id}` && (
+          <FollowButton feed={activity.current_feed} />
+        )}
+      </ThemedView>
       <ThemedView style={styles.row}>
         <ThemedView style={styles.avatarWrapper}>
           <ThemedView style={styles.avatar}>
@@ -48,6 +57,12 @@ export const Activity = ({ activity }: ActivityProps) => {
 };
 
 const styles = StyleSheet.create({
+  actionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginBottom: 4,
+  },
   card: {
     width: "100%",
     padding: 12,
