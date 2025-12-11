@@ -1,25 +1,57 @@
-import { Link } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { useLocalSearchParams } from "expo-router";
+import { StyleSheet } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ActivityWithStateUpdates,
+  useFeedsClient,
+} from "@stream-io/feeds-react-native-sdk";
+import { CommentList } from "@/components/comments/CommentList";
+import { CommentComposer } from "@/components/comments/CommentComposer";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+export default () => {
+  const client = useFeedsClient();
+  const { activityId: activityIdParam } = useLocalSearchParams();
+  const [activityWithStateUpdates, setActivityWithStateUpdates] = useState<
+    ActivityWithStateUpdates | undefined
+  >(undefined);
 
-export default function ModalScreen() {
+  const activityId = activityIdParam as string;
+
+  useEffect(() => {
+    const activity = client?.activityWithStateUpdates(activityId);
+
+    if (!activity) {
+      return;
+    }
+
+    if (typeof activity.currentState.activity?.comments === "undefined") {
+      activity.get().then(() => setActivityWithStateUpdates(activity));
+    }
+
+    return () => {
+      activity?.dispose();
+    };
+  }, [client, activityId]);
+
+  if (!activityWithStateUpdates) {
+    return null;
+  }
+
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title">This is a modal</ThemedText>
-      <Link href="/" dismissTo style={styles.link}>
-        <ThemedText type="link">Go to home screen</ThemedText>
-      </Link>
-    </ThemedView>
+    <SafeAreaView style={styles.safeArea}>
+      <CommentList activity={activityWithStateUpdates} />
+      <CommentComposer activity={activityWithStateUpdates} />
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: "white" },
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 20,
   },
   link: {
