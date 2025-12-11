@@ -7,6 +7,7 @@ import { useClientConnectedUser } from "@stream-io/feeds-react-native-sdk";
 import { FollowButton } from "@/components/follows/follow-button";
 import { Reaction } from "@/components/activity/Reaction";
 import { useRouter } from "expo-router";
+import { Image } from "expo-image";
 
 type ActivityProps = {
   activity: ActivityResponse;
@@ -26,6 +27,8 @@ export const Activity = ({ activity }: ActivityProps) => {
 
   const connectedUser = useClientConnectedUser();
 
+  const image = activity.attachments?.length > 0 && activity.attachments[0];
+
   return (
     <ThemedView style={styles.card}>
       <ThemedView style={styles.actionsRow}>
@@ -33,6 +36,9 @@ export const Activity = ({ activity }: ActivityProps) => {
           <FollowButton feed={activity.current_feed} />
         )}
       </ThemedView>
+      {image ? (
+        <Image source={{ uri: image.image_url }} style={styles.imagePreview} />
+      ) : null}
       <ThemedView style={styles.row}>
         <ThemedView style={styles.avatarWrapper}>
           <ThemedView style={styles.avatar}>
@@ -80,6 +86,12 @@ export const Activity = ({ activity }: ActivityProps) => {
 };
 
 const styles = StyleSheet.create({
+  imagePreview: {
+    width: "100%",
+    height: 200,
+    marginBottom: 12,
+    borderRadius: 16,
+  },
   commentButton: {
     flexDirection: "row",
     justifyContent: "center",
