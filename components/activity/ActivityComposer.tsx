@@ -7,11 +7,24 @@ import {
   Pressable,
   Platform,
 } from "react-native";
-import { useFeedContext } from "@stream-io/feeds-react-native-sdk";
+import {
+  ImageUploadResponse,
+  StreamResponse,
+  useFeedContext,
+} from "@stream-io/feeds-react-native-sdk";
+import { ImagePicker } from "@/components/activity/ImagePicker";
+import Animated, {
+  LinearTransition,
+  ZoomIn,
+  ZoomOut,
+} from "react-native-reanimated";
 
 export const ActivityComposer = () => {
   const feed = useFeedContext();
   const [newText, setNewText] = useState("");
+  const [image, setImage] = useState<
+    StreamResponse<ImageUploadResponse> | undefined
+  >(undefined);
 
   const canPost = newText.trim().length > 0;
 
@@ -21,10 +34,16 @@ export const ActivityComposer = () => {
     await feed.addActivity({
       text: newText,
       type: "post",
+      ...(image
+        ? {
+            attachments: [{ type: "image", image_url: image.file, custom: {} }],
+          }
+        : null),
     });
 
     setNewText("");
-  }, [feed, newText, canPost]);
+    setImage(undefined);
+  }, [feed, newText, canPost, image]);
 
   return (
     <View style={styles.card}>
@@ -39,25 +58,64 @@ export const ActivityComposer = () => {
           underlineColorAndroid="transparent"
           placeholderTextColor="#9CA3AF"
         />
-        <View style={styles.footerRow}>
-          <Pressable
-            onPress={sendActivity}
-            disabled={!canPost}
-            style={({ pressed }) => [
-              styles.button,
-              !canPost && styles.buttonDisabled,
-              pressed && canPost && styles.buttonPressed,
-            ]}
-          >
-            <Text style={styles.buttonText}>Post</Text>
-          </Pressable>
-        </View>
+        {image ? (
+          <View>
+            <Animated.Image
+              style={styles.imagePreview}
+              entering={ZoomIn.duration(150)}
+              exiting={ZoomOut.duration(150)}
+              source={{ uri: image?.file }}
+            />
+            <Pressable
+              onPress={() => setImage(undefined)}
+              style={styles.removeButton}
+            >
+              <Text style={styles.removeButtonText}>X</Text>
+            </Pressable>
+          </View>
+        ) : null}
+        <Animated.View layout={LinearTransition.duration(200)}>
+          <View style={styles.footerRow}>
+            {image ? <View /> : <ImagePicker onUpload={setImage} />}
+            <Pressable
+              onPress={sendActivity}
+              disabled={!canPost}
+              style={({ pressed }) => [
+                styles.button,
+                !canPost && styles.buttonDisabled,
+                pressed && canPost && styles.buttonPressed,
+              ]}
+            >
+              <Text style={styles.buttonText}>Post</Text>
+            </Pressable>
+          </View>
+        </Animated.View>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  imagePreview: {
+    width: "100%",
+    resizeMode: "cover",
+    height: 100,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+  },
+  removeButtonText: { color: "white" },
+  removeButton: {
+    position: "absolute",
+    top: 4,
+    right: 20,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    borderRadius: 999,
+    padding: 2,
+    width: 24,
+    height: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   card: {
     padding: 12,
     borderRadius: 12,
@@ -75,7 +133,7 @@ const styles = StyleSheet.create({
   inner: {
     width: "100%",
     flexDirection: "column",
-    gap: 8, // RN doesn't support gap everywhere, but Metro will inline this in newer versions; if not, just use margins
+    gap: 8,
   },
   input: {
     minHeight: 80,
@@ -92,7 +150,7 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 8,
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
     alignItems: "center",
   },
   button: {
